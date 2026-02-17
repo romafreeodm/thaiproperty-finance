@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ThaiProperty Finance — Financial management dashboard for real estate agency">
+  <title>ThaiProperty Finance — Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+  <div id="toast-container" class="toast-container"></div>
+
+  <div class="app-layout">
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">🏠</div>
+        <div>
+          <h1>ThaiProperty</h1>
+          <span>Finance Manager</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a class="nav-item" data-page="transactions">
+          <span class="nav-icon">💳</span> Transactions
+          <span class="nav-badge">0</span>
+        </a>
+        <a class="nav-item" data-page="income">
+          <span class="nav-icon">📈</span> Income
+          <span class="nav-badge income-badge">0</span>
+        </a>
+        <a class="nav-item" data-page="expenses">
+          <span class="nav-icon">📉</span> Expenses
+          <span class="nav-badge expense-badge">0</span>
+        </a>
+        <a class="nav-item" data-page="deals">
+          <span class="nav-icon">🏠</span> Deals
+          <span class="nav-badge deals-badge">0</span>
+        </a>
+        <a class="nav-item" data-page="agents">
+          <span class="nav-icon">👥</span> Agents
+        </a>
+        <a class="nav-item" data-page="deposits">
+          <span class="nav-icon">🔐</span> Deposits
+        </a>
+
+        <div class="nav-section-label">Analytics</div>
+        <a class="nav-item" data-page="developers">
+          <span class="nav-icon">🏗️</span> Developers
+          <span class="nav-badge developers-badge">0</span>
+        </a>
+        <a class="nav-item" data-page="owners">
+          <span class="nav-icon">👤</span> Owners
+          <span class="nav-badge owners-badge">0</span>
+        </a>
+        <a class="nav-item" data-page="reports">
+          <span class="nav-icon">📈</span> Reports
+        </a>
+        <a class="nav-item" data-page="settings">
+          <span class="nav-icon">⚙️</span> Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <div class="main-content">
+      <header class="main-header">
+        <div class="header-left">
+          <button class="mobile-toggle" id="sidebar-toggle">☰</button>
+          <div>
+            <h2 id="page-title">Dashboard</h2>
+            <div class="page-subtitle" id="page-subtitle">Financial Overview</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-secondary" onclick="app.exportCSV()">📥 <span>Export CSV</span></button>
+          <button class="btn btn-primary" onclick="app.openAddTransactionModal()">＋ <span>Add
+              Transaction</span></button>
+        </div>
+      </header>
+
+      <div class="page-content">
+
+        <!-- ============ PAGE: DASHBOARD ============ -->
+        <section class="page-section active" id="page-dashboard">
+          <div class="metrics-grid">
+            <div class="metric-card green">
+              <div class="metric-header">
+                <div class="metric-icon">📈</div>
+                <span class="metric-label">Total Income</span>
+              </div>
+              <div class="metric-value" id="metric-income">฿0.00</div>
+            </div>
+            <div class="metric-card red">
+              <div class="metric-header">
+                <div class="metric-icon">📉</div>
+                <span class="metric-label">Total Expenses</span>
+              </div>
+              <div class="metric-value" id="metric-expenses">฿0.00</div>
+            </div>
+            <div class="metric-card blue">
+              <div class="metric-header">
+                <div class="metric-icon">💰</div>
+                <span class="metric-label">Balance</span>
+              </div>
+              <div class="metric-value" id="metric-balance">฿0.00</div>
+            </div>
+            <div class="metric-card amber">
+              <div class="metric-header">
+                <div class="metric-icon">🔐</div>
+                <span class="metric-label">Total Deposits</span>
+              </div>
+              <div class="metric-value" id="metric-deposits">฿0.00</div>
+            </div>
+            <div class="metric-card purple">
+              <div class="metric-header">
+                <div class="metric-icon">🤝</div>
+                <span class="metric-label">Agent Commissions</span>
+              </div>
+              <div class="metric-value" id="metric-commissions">฿0.00</div>
+            </div>
+            <div class="metric-card cyan">
+              <div class="metric-header">
+                <div class="metric-icon">💎</div>
+                <span class="metric-label">Investments</span>
+              </div>
+              <div class="metric-value" id="metric-investments">฿0.00</div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <h3>📊 Income vs Expenses</h3>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="chart-bar"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <h3>🍩 Expense Breakdown</h3>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="chart-doughnut"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>🕐 Recent Transactions</h3>
+              <button class="btn btn-sm btn-secondary" onclick="app.navigate('transactions')">View All →</button>
+            </div>
+            <div class="card-body">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Category</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-transactions"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PAGE: TRANSACTIONS ============ -->
+        <section class="page-section" id="page-transactions">
+          <div class="filters-bar">
+            <div class="search-input">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="txn-search" placeholder="Search transactions...">
+            </div>
+            <select class="filter-select" id="txn-type-filter">
+              <option value="all">All Types</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+            <select class="filter-select" id="txn-cat-filter">
+              <option value="all">All Categories</option>
+              <option value="commission">Commission</option>
+              <option value="commission_out">Agent Commission</option>
+              <option value="office">Office</option>
+              <option value="salary">Salary</option>
+              <option value="ads">Advertising</option>
+              <option value="software">Software</option>
+              <option value="transport">Transport</option>
+              <option value="rent">Rent</option>
+              <option value="other_income">Other Income</option>
+              <option value="other_expense">Other Expense</option>
+            </select>
+            <button class="btn btn-primary" onclick="app.openAddTransactionModal()">＋ Add</button>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Category</th>
+                      <th>Agent</th>
+                      <th>Amount</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transactions-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ============ PAGE: INCOME ============ -->
+        <section class="page-section" id="page-income">
+          <div class="metrics-grid" style="margin-bottom:24px;">
+            <div class="metric-card green">
+              <div class="metric-header">
+                <div class="metric-icon">💰</div><span class="metric-label">Total Income</span>
+              </div>
+              <div class="metric-value" id="income-total">฿0</div>
+            </div>
+            <div class="metric-card cyan">
+              <div class="metric-header">
+                <div class="metric-icon">📋</div><span class="metric-label">Deals Count</span>
+              </div>
+              <div class="metric-value" id="income-count">0</div>
+            </div>
+            <div class="metric-card purple">
+              <div class="metric-header">
+                <div class="metric-icon">📊</div><span class="metric-label">Avg Deal Size</span>
+              </div>
+              <div class="metric-value" id="income-avg">฿0</div>
+            </div>
+          </div>
+          <div class="filters-bar advanced-filters">
+            <div class="search-input">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="inc-search" placeholder="Search income...">
+            </div>
+            <input type="date" class="filter-date" id="inc-date-from" title="From date">
+            <input type="date" class="filter-date" id="inc-date-to" title="To date">
+            <select class="filter-select" id="inc-cat-filter">
+              <option value="all">All Categories</option>
+              <option value="commission">Commission</option>
+            </select>
+            <select class="filter-select" id="inc-agent-filter">
+              <option value="all">All Agents</option>
+            </select>
+            <button class="btn btn-sm btn-secondary" onclick="app.clearIncomeFilters()">✕ Clear</button>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Category</th>
+                      <th>Agent</th>
+                      <th>Amount</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="income-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PAGE: EXPENSES ============ -->
+        <section class="page-section" id="page-expenses">
+          <div class="metrics-grid" style="margin-bottom:24px;">
+            <div class="metric-card red">
+              <div class="metric-header">
+                <div class="metric-icon">💸</div><span class="metric-label">Total Expenses</span>
+              </div>
+              <div class="metric-value" id="exp-total">฿0</div>
+            </div>
+            <div class="metric-card amber">
+              <div class="metric-header">
+                <div class="metric-icon">🤝</div><span class="metric-label">Agent Commissions</span>
+              </div>
+              <div class="metric-value" id="exp-commissions">฿0</div>
+            </div>
+            <div class="metric-card blue">
+              <div class="metric-header">
+                <div class="metric-icon">🏢</div><span class="metric-label">Operating Costs</span>
+              </div>
+              <div class="metric-value" id="exp-operating">฿0</div>
+            </div>
+            <div class="metric-card cyan">
+              <div class="metric-header">
+                <div class="metric-icon">📋</div><span class="metric-label">Entries</span>
+              </div>
+              <div class="metric-value" id="exp-count">0</div>
+            </div>
+          </div>
+          <div class="filters-bar advanced-filters">
+            <div class="search-input">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="exp-search" placeholder="Search expenses...">
+            </div>
+            <input type="date" class="filter-date" id="exp-date-from" title="From date">
+            <input type="date" class="filter-date" id="exp-date-to" title="To date">
+            <select class="filter-select" id="exp-cat-filter">
+              <option value="all">All Categories</option>
+              <option value="commission_out">Agent Commission</option>
+              <option value="office">Office</option>
+              <option value="salary">Salary</option>
+              <option value="ads">Advertising</option>
+              <option value="software">Software</option>
+              <option value="transport">Transport</option>
+              <option value="deposit_15pct">Company 15%</option>
+              <option value="other">Other</option>
+            </select>
+            <select class="filter-select" id="exp-agent-filter">
+              <option value="all">All / By whom</option>
+              <option value="Roman">Roman</option>
+              <option value="Ariel">Ariel</option>
+              <option value="none">Company (no agent)</option>
+            </select>
+            <button class="btn btn-sm btn-secondary" onclick="app.clearExpenseFilters()">✕ Clear</button>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Category</th>
+                      <th>Agent / By</th>
+                      <th>Amount</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="expenses-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PAGE: DEALS ============ -->
+        <section class="page-section" id="page-deals">
+          <div class="metrics-grid" style="margin-bottom:24px;">
+            <div class="metric-card green">
+              <div class="metric-header">
+                <div class="metric-icon">💰</div><span class="metric-label">Total Commissions</span>
+              </div>
+              <div class="metric-value" id="deals-total-income">฿0</div>
+            </div>
+            <div class="metric-card blue">
+              <div class="metric-header">
+                <div class="metric-icon">🏢</div><span class="metric-label">Number of Deals</span>
+              </div>
+              <div class="metric-value" id="deals-count">0</div>
+            </div>
+            <div class="metric-card purple">
+              <div class="metric-header">
+                <div class="metric-icon">🏷️</div><span class="metric-label">Total Property Value</span>
+              </div>
+              <div class="metric-value" id="deals-prop-value">฿0</div>
+            </div>
+          </div>
+
+          <!-- Deal Category Sub-Tabs -->
+          <div class="deal-tabs" style="margin-bottom:20px;">
+            <button class="deal-tab active" data-dealcat="all"
+              onclick="document.getElementById('deals-cat-filter').value='all'; app.renderDeals();">
+              📊 All <span class="deal-tab-count">0</span>
+            </button>
+            <button class="deal-tab deal-tab-blue" data-dealcat="developer_sale"
+              onclick="document.getElementById('deals-cat-filter').value='developer_sale'; app.renderDeals();">
+              🏗️ Developer <span class="deal-tab-count">0</span>
+            </button>
+            <button class="deal-tab deal-tab-green" data-dealcat="secondary_sale"
+              onclick="document.getElementById('deals-cat-filter').value='secondary_sale'; app.renderDeals();">
+              🏠 Secondary <span class="deal-tab-count">0</span>
+            </button>
+            <button class="deal-tab deal-tab-amber" data-dealcat="rental"
+              onclick="document.getElementById('deals-cat-filter').value='rental'; app.renderDeals();">
+              🏡 Rental <span class="deal-tab-count">0</span>
+            </button>
+            <button class="deal-tab deal-tab-purple" data-dealcat="service"
+              onclick="document.getElementById('deals-cat-filter').value='service'; app.renderDeals();">
+              ⚖️ Services <span class="deal-tab-count">0</span>
+            </button>
+          </div>
+
+          <div class="filters-bar advanced-filters" style="margin-bottom:24px;">
+            <div class="search-input">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="deals-search" placeholder="Search deals, clients, projects...">
+            </div>
+            <select class="filter-select" id="deals-cat-filter" style="display:none;">
+              <option value="all">All Types</option>
+              <option value="developer_sale">Developer</option>
+              <option value="secondary_sale">Secondary</option>
+              <option value="rental">Rental</option>
+              <option value="service">Service</option>
+            </select>
+            <select class="filter-select" id="deals-status-filter">
+              <option value="all">All Status</option>
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+            </select>
+            <button class="btn btn-sm btn-secondary" onclick="app.clearDealsFilters()">✕ Clear</button>
+          </div>
+          <div class="deals-grid" id="deals-grid"></div>
+        </section>
+
+        <!-- ============ PAGE: AGENTS ============ -->
+        <section class="page-section" id="page-agents">
+          <div style="display:flex; justify-content:flex-end; margin-bottom:20px;">
+            <button class="btn btn-primary" onclick="app.openAddAgentModal()">＋ Add Agent</button>
+          </div>
+          <div class="agents-grid" id="agents-grid"></div>
+        </section>
+
+        <!-- ============ PAGE: DEPOSITS ============ -->
+        <section class="page-section" id="page-deposits">
+          <div class="metrics-grid" style="margin-bottom:24px;">
+            <div class="metric-card amber">
+              <div class="metric-header">
+                <div class="metric-icon">🔒</div>
+                <span class="metric-label">Security Deposits</span>
+              </div>
+              <div class="metric-value" id="dep-security">฿0.00</div>
+            </div>
+            <div class="metric-card green">
+              <div class="metric-header">
+                <div class="metric-icon">🏠</div>
+                <span class="metric-label">Rent Payments</span>
+              </div>
+              <div class="metric-value" id="dep-rent">฿0.00</div>
+            </div>
+            <div class="metric-card blue">
+              <div class="metric-header">
+                <div class="metric-icon">👤</div>
+                <span class="metric-label">Client Deposits</span>
+              </div>
+              <div class="metric-value" id="dep-client">฿0.00</div>
+            </div>
+            <div class="metric-card purple">
+              <div class="metric-header">
+                <div class="metric-icon">💰</div>
+                <span class="metric-label">All Deposits</span>
+              </div>
+              <div class="metric-value" id="dep-total">฿0.00</div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+            <button class="btn btn-primary" onclick="app.openAddDepositModal()">＋ Add Deposit</button>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <div class="deposit-list" id="deposits-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PAGE: DEVELOPERS ============ -->
+        <section class="page-section" id="page-developers">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <p style="color:var(--text-muted); font-size:14px;">Database of property developers and their projects</p>
+          </div>
+          <div class="developers-grid" id="developers-grid">
+            <div class="empty-state">
+              <div class="empty-icon">🏗️</div>
+              <h4>No developers added yet</h4>
+              <p>Developer profiles will be linked to deals automatically</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PAGE: OWNERS ============ -->
+        <section class="page-section" id="page-owners">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <p style="color:var(--text-muted); font-size:14px;">Database of property owners</p>
+          </div>
+          <div class="owners-grid" id="owners-grid">
+            <div class="empty-state">
+              <div class="empty-icon">👤</div>
+              <h4>No owners added yet</h4>
+              <p>Owner profiles will be linked to deals and properties</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PAGE: REPORTS ============ -->
+        <section class="page-section" id="page-reports">
+          <div class="card" style="margin-bottom:24px;">
+            <div class="card-header">
+              <h3>📋 Financial Summary (Corrected Formulas)</h3>
+              <button class="btn btn-sm btn-success" onclick="app.exportFullReport()">📥 Export Full Report</button>
+            </div>
+            <div class="card-body">
+              <div class="report-summary">
+                <div class="report-item income-report">
+                  <div class="report-label">Total Income</div>
+                  <div class="report-value" id="rep-income" style="color:var(--accent-green)">฿0</div>
+                </div>
+                <div class="report-item expense-report">
+                  <div class="report-label">Operating Expenses</div>
+                  <div class="report-value" id="rep-expenses" style="color:var(--accent-red)">฿0</div>
+                </div>
+                <div class="report-item" style="border-color:var(--accent-purple);">
+                  <div class="report-label">Agent Commissions</div>
+                  <div class="report-value" id="rep-commissions" style="color:var(--accent-purple)">฿0</div>
+                </div>
+                <div class="report-item balance-report">
+                  <div class="report-label">Net Income (Income − Commissions)</div>
+                  <div class="report-value" id="rep-net-income">฿0</div>
+                </div>
+                <div class="report-item" style="border-color:var(--accent-cyan);">
+                  <div class="report-label">Operating Profit (Net − OpEx)</div>
+                  <div class="report-value" id="rep-op-profit">฿0</div>
+                </div>
+                <div class="report-item balance-report">
+                  <div class="report-label">Total Balance</div>
+                  <div class="report-value" id="rep-balance">฿0</div>
+                </div>
+                <div class="report-item deposit-report">
+                  <div class="report-label">Total Deposits</div>
+                  <div class="report-value" id="rep-deposits" style="color:var(--accent-amber)">฿0</div>
+                </div>
+                <div class="report-item" style="border-color:var(--accent-cyan);">
+                  <div class="report-label">Total Investments</div>
+                  <div class="report-value" id="rep-investments" style="color:var(--accent-cyan)">฿0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>⚠️ Formula Errors Found in Original Report</h3>
+            </div>
+            <div class="card-body">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Error Description</th>
+                      <th>Original Value</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1</td>
+                      <td>Total Income (₿5.33M) < Total Outcome Comm (₿5.34M) — commissions exceed income</td>
+                      <td class="amount-negative">₿5,340,429.20</td>
+                      <td><span class="category-badge expense">⚠️ Check</span></td>
+                    </tr>
+                    <tr>
+                      <td>2</td>
+                      <td>IN COMPANY BALANCE = ₿1,491,669.90 — formula unclear, doesn't match Income − Expenses</td>
+                      <td>₿1,491,669.90</td>
+                      <td><span class="category-badge expense">❌ Error</span></td>
+                    </tr>
+                    <tr>
+                      <td>3</td>
+                      <td>Two identical labels "BALANCE AFTER SPENDS" with different values (−₿154K vs −₿854K)</td>
+                      <td>−₿154,838 / −₿854,710</td>
+                      <td><span class="category-badge expense">❌ Duplicate</span></td>
+                    </tr>
+                    <tr>
+                      <td>4</td>
+                      <td>Eli Rent values (22,000 / 30,000) recorded without currency symbol ₿</td>
+                      <td>22000 / 30000</td>
+                      <td><span class="category-badge commission">⚠️ Format</span></td>
+                    </tr>
+                    <tr>
+                      <td>5</td>
+                      <td>Roman Investment = exact Balance After Spends — likely not a real investment</td>
+                      <td>₿154,838.62</td>
+                      <td><span class="category-badge commission">⚠️ Verify</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PAGE: SETTINGS ============ -->
+        <section class="page-section" id="page-settings">
+          <div class="settings-section">
+            <h3>📥 Import CSV</h3>
+            <div class="settings-card">
+              <div class="upload-zone" id="upload-zone">
+                <div class="upload-icon">📂</div>
+                <p>Click or drag & drop your CSV file here</p>
+                <span>Expected format: Date, Type, Category, Description, Amount, Agent</span>
+              </div>
+              <input type="file" id="csv-file-input" accept=".csv" style="display:none">
+              <div style="margin-top:16px; padding:16px; background:rgba(255,255,255,0.03); border-radius:10px;">
+                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">📋 <strong>CSV Format
+                    Example:</strong></p>
+                <code
+                  style="font-size:12px; color:var(--text-muted); display:block; white-space:pre; overflow-x:auto; padding:8px; background:rgba(0,0,0,0.3); border-radius:6px;">Date,Type,Category,Description,Amount,Agent
+2026-01-15,income,commission,Property sale commission,500000,Roman
+2026-01-20,expense,office,Office rent,25000,
+2026-02-01,expense,ads,Facebook Ads,15000,</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>📤 Export Data</h3>
+            <div class="settings-card" style="display:flex; gap:12px; flex-wrap:wrap;">
+              <button class="btn btn-secondary" onclick="app.exportCSV()">📥 Export Transactions (CSV)</button>
+              <button class="btn btn-success" onclick="app.exportFullReport()">📊 Export Full Report</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>🔗 Google Sheets Integration</h3>
+            <div class="settings-card">
+              <p style="color:var(--text-secondary); font-size:14px; margin-bottom:16px;">
+                Follow these steps to sync your data with Google Sheets:
+              </p>
+              <ol class="google-steps">
+                <li>Export your data using the <strong>"Export Full Report"</strong> button above</li>
+                <li>Open <strong>Google Drive</strong> → click <strong>"New"</strong> → <strong>"File Upload"</strong> →
+                  select the downloaded CSV file</li>
+                <li>Right-click the uploaded file → <strong>"Open with"</strong> → <strong>"Google Sheets"</strong></li>
+                <li>The data will automatically appear in a Google Sheet that you can share with your team</li>
+                <li><strong>Auto-sync (advanced):</strong> In Google Sheets, go to <strong>Extensions → Apps
+                    Script</strong> and paste the script below to auto-import from a URL</li>
+                <li>Share the sheet with <strong>Ariel</strong> and other team members via the <strong>"Share"</strong>
+                  button</li>
+              </ol>
+              <div style="margin-top:16px; padding:16px; background:rgba(255,255,255,0.03); border-radius:10px;">
+                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">📋 <strong>Google Apps Script
+                    (optional auto-import):</strong></p>
+                <code
+                  style="font-size:11px; color:var(--text-muted); display:block; white-space:pre; overflow-x:auto; padding:12px; background:rgba(0,0,0,0.3); border-radius:6px;">function importCSV() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  // Upload your CSV to Google Drive and get the file ID
+  var fileId = 'YOUR_FILE_ID_HERE';
+  var file = DriveApp.getFileById(fileId);
+  var csv = file.getBlob().getDataAsString();
+  var rows = Utilities.parseCsv(csv);
+  sheet.clear();
+  sheet.getRange(1, 1, rows.length, rows[0].length).setValues(rows);
+}</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>🔄 Reset Data</h3>
+            <div class="settings-card">
+              <p style="color:var(--text-secondary); font-size:14px; margin-bottom:12px;">
+                Reset all data to the original values imported from the CSV file. This action cannot be undone.
+              </p>
+              <button class="btn btn-danger" onclick="app.resetData()">⚠️ Reset to Defaults</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: ADD/EDIT TRANSACTION ============ -->
+  <div class="modal-overlay" id="txn-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="txn-modal-title">Add Transaction</h3>
+        <button class="modal-close" onclick="app.closeModal('txn-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="txn-form" onsubmit="event.preventDefault(); app.saveTransaction();">
+          <input type="hidden" id="txn-edit-id">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Type</label>
+              <select class="form-control" id="txn-type" required>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <select class="form-control" id="txn-category" required>
+                <option value="commission">Commission</option>
+                <option value="commission_out">Agent Commission</option>
+                <option value="office">Office</option>
+                <option value="salary">Salary</option>
+                <option value="ads">Advertising</option>
+                <option value="software">Software</option>
+                <option value="transport">Transport</option>
+                <option value="rent">Rent</option>
+                <option value="other_income">Other Income</option>
+                <option value="other_expense">Other Expense</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input class="form-control" type="text" id="txn-description" placeholder="e.g. Property sale at Jomtien..."
+              required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Amount (฿)</label>
+              <input class="form-control" type="number" id="txn-amount" placeholder="0.00" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input class="form-control" type="date" id="txn-date" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Agent (optional)</label>
+            <input class="form-control" type="text" id="txn-agent" placeholder="e.g. Roman, Ariel...">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('txn-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="app.saveTransaction()">Save Transaction</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: ADD DEPOSIT ============ -->
+  <div class="modal-overlay" id="dep-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Deposit</h3>
+        <button class="modal-close" onclick="app.closeModal('dep-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="dep-form" onsubmit="event.preventDefault(); app.saveDeposit();">
+          <div class="form-group">
+            <label>Name</label>
+            <input class="form-control" type="text" id="dep-name" placeholder="e.g. Client deposit — Amir" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Amount (฿)</label>
+              <input class="form-control" type="number" id="dep-amount" placeholder="0.00" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input class="form-control" type="date" id="dep-date" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select class="form-control" id="dep-type">
+              <option value="security">Security Deposit</option>
+              <option value="client">Client Deposit</option>
+              <option value="rent">Rent Payment</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('dep-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="app.saveDeposit()">Save Deposit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: ADD AGENT ============ -->
+  <div class="modal-overlay" id="agent-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Agent</h3>
+        <button class="modal-close" onclick="app.closeModal('agent-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="agent-form" onsubmit="event.preventDefault(); app.saveAgent();">
+          <div class="form-group">
+            <label>Name</label>
+            <input class="form-control" type="text" id="agent-name" placeholder="Agent name" required>
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <input class="form-control" type="text" id="agent-role" placeholder="e.g. Agent, Senior Agent...">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeModal('agent-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="app.saveAgent()">Save Agent</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="generated-data.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
