@@ -3873,9 +3873,34 @@
     openModal,
     closeModal,
     navigate,
+    toggleTheme,
   };
 
+  // ============ THEME MANAGEMENT ============
+  function initTheme() {
+    const savedTheme = localStorage.getItem('thaiproperty_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('thaiproperty_theme', next);
+    updateThemeIcon(next);
+  }
+
+  function updateThemeIcon(theme) {
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = theme === 'dark' ? '🌞' : 'tj';
+    if (btn) btn.textContent = theme === 'dark' ? '🌞' : '🌙';
+  }
+
   // Start app
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => {
+    init();
+    initTheme();
+  });
 
 })();
