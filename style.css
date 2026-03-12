@@ -1683,3 +1683,55 @@ select.form-control {
     color: var(--accent-red);
     background: var(--accent-red-glow);
 }
+
+/* ============ UTILITY CLASSES ============ */
+.mb-24 {
+    margin-bottom: 24px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.mb-16 {
+    margin-bottom: 16px;
+}
+
+.flex-end {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ============ LIGHT THEME FIX: DATE INPUT ============ */
+[data-theme="light"] .filter-date {
+    color-scheme: light;
+}
+
+/* ============ LIGHT THEME FIX: HEADER BACKGROUND ============ */
+[data-theme="light"] .main-header {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* ============ LIGHT THEME FIX: TABLE ROW BORDERS ============ */
+[data-theme="light"] tbody td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] tbody tr:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+/* ============ LIGHT THEME FIX: SCROLLBAR ============ */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25);
+}
