@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="ThaiProperty Finance — Financial management dashboard for real estate agency">
+  <meta name="theme-color" content="#0a0e1a">
   <title>ThaiProperty Finance — Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -73,14 +74,14 @@
     <div class="main-content">
       <header class="main-header">
         <div class="header-left">
-          <button class="mobile-toggle" id="sidebar-toggle">☰</button>
+          <button class="mobile-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
           <div>
             <h2 id="page-title">Dashboard</h2>
             <div class="page-subtitle" id="page-subtitle">Financial Overview</div>
           </div>
         </div>
         <div class="header-right">
-          <button class="btn-icon" id="theme-toggle" onclick="app.toggleTheme()" title="Switch Theme">🌞</button>
+          <button class="btn-icon" id="theme-toggle" onclick="app.toggleTheme()" title="Switch Theme" aria-label="Toggle theme">🌞</button>
           <button class="btn btn-secondary" onclick="app.exportCSV()">📥 <span>Export CSV</span></button>
           <button class="btn btn-primary" onclick="app.openAddTransactionModal()">＋ <span>Add
               Transaction</span></button>
@@ -233,7 +234,7 @@
 
         <!-- ============ PAGE: INCOME ============ -->
         <section class="page-section" id="page-income">
-          <div class="metrics-grid" style="margin-bottom:24px;">
+          <div class="metrics-grid" class="mb-24">
             <div class="metric-card green">
               <div class="metric-header">
                 <div class="metric-icon">💰</div><span class="metric-label">Total Income</span>
@@ -292,7 +293,7 @@
 
         <!-- ============ PAGE: EXPENSES ============ -->
         <section class="page-section" id="page-expenses">
-          <div class="metrics-grid" style="margin-bottom:24px;">
+          <div class="metrics-grid" class="mb-24">
             <div class="metric-card red">
               <div class="metric-header">
                 <div class="metric-icon">💸</div><span class="metric-label">Total Expenses</span>
@@ -367,7 +368,7 @@
 
         <!-- ============ PAGE: DEALS ============ -->
         <section class="page-section" id="page-deals">
-          <div class="metrics-grid" style="margin-bottom:24px;">
+          <div class="metrics-grid" class="mb-24">
             <div class="metric-card green">
               <div class="metric-header">
                 <div class="metric-icon">💰</div><span class="metric-label">Total Commissions</span>
@@ -389,7 +390,7 @@
           </div>
 
           <!-- Deal Category Sub-Tabs -->
-          <div class="deal-tabs" style="margin-bottom:20px;">
+          <div class="deal-tabs" class="mb-20">
             <button class="deal-tab active" data-dealcat="all"
               onclick="document.getElementById('deals-cat-filter').value='all'; app.renderDeals();">
               📊 All <span class="deal-tab-count">0</span>
@@ -412,7 +413,7 @@
             </button>
           </div>
 
-          <div class="filters-bar advanced-filters" style="margin-bottom:24px;">
+          <div class="filters-bar advanced-filters" class="mb-24">
             <div class="search-input">
               <span class="search-icon">🔍</span>
               <input type="text" id="deals-search" placeholder="Search deals, clients, projects...">
@@ -436,7 +437,7 @@
 
         <!-- ============ PAGE: AGENTS ============ -->
         <section class="page-section" id="page-agents">
-          <div style="display:flex; justify-content:flex-end; margin-bottom:20px;">
+          <div class="flex-end mb-20">
             <button class="btn btn-primary" onclick="app.openAddAgentModal()">＋ Add Agent</button>
           </div>
           <div class="agents-grid" id="agents-grid"></div>
@@ -444,7 +445,7 @@
 
         <!-- ============ PAGE: DEPOSITS ============ -->
         <section class="page-section" id="page-deposits">
-          <div class="metrics-grid" style="margin-bottom:24px;">
+          <div class="metrics-grid" class="mb-24">
             <div class="metric-card amber">
               <div class="metric-header">
                 <div class="metric-icon">🔒</div>
@@ -475,7 +476,7 @@
             </div>
           </div>
 
-          <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+          <div class="flex-end mb-16">
             <button class="btn btn-primary" onclick="app.openAddDepositModal()">＋ Add Deposit</button>
           </div>
 
@@ -488,7 +489,7 @@
 
         <!-- ============ PAGE: DEVELOPERS ============ -->
         <section class="page-section" id="page-developers">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div class="flex-between mb-20">
             <p style="color:var(--text-muted); font-size:14px;">Database of property developers and their projects</p>
           </div>
           <div class="developers-grid" id="developers-grid">
@@ -502,7 +503,7 @@
 
         <!-- ============ PAGE: OWNERS ============ -->
         <section class="page-section" id="page-owners">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div class="flex-between mb-20">
             <p style="color:var(--text-muted); font-size:14px;">Database of property owners</p>
           </div>
           <div class="owners-grid" id="owners-grid">
@@ -516,7 +517,7 @@
 
         <!-- ============ PAGE: REPORTS ============ -->
         <section class="page-section" id="page-reports">
-          <div class="card" style="margin-bottom:24px;">
+          <div class="card" class="mb-24">
             <div class="card-header">
               <h3>📋 Financial Summary (Corrected Formulas)</h3>
               <button class="btn btn-sm btn-success" onclick="app.exportFullReport()">📥 Export Full Report</button>

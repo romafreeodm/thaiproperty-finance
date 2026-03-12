@@ -2734,6 +2734,15 @@
     return ++appData.nextId;
   }
 
+  // ============ UTILITY HELPERS ============
+  function debounce(fn, delay) {
+    let timer;
+    return function (...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
+
   // ============ FORMAT HELPERS ============
   function formatCurrency(amount) {
     const abs = Math.abs(amount);
@@ -2755,17 +2764,39 @@
 
   // ============ CALCULATIONS ============
   function calcMetrics() {
-    const txns = appData.transactions;
-    const totalIncome = txns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-    const totalCommissionsOut = txns.filter(t => t.category === 'commission_out').reduce((s, t) => s + t.amount, 0);
-    const operatingExpenses = txns.filter(t => t.type === 'expense' && t.category !== 'commission_out').reduce((s, t) => s + t.amount, 0);
-    const totalExpenses = txns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    let totalCommissionsOut = 0;
+    let operatingExpenses = 0;
+
+    for (const t of appData.transactions) {
+      if (t.type === 'income') {
+        totalIncome += t.amount;
+      } else if (t.type === 'expense') {
+        totalExpenses += t.amount;
+        if (t.category === 'commission_out') {
+          totalCommissionsOut += t.amount;
+        } else {
+          operatingExpenses += t.amount;
+        }
+      }
+    }
+
     const netIncome = totalIncome - totalCommissionsOut;
     const operatingProfit = netIncome - operatingExpenses;
-    const totalDeposits = appData.deposits.reduce((s, d) => s + d.amount, 0);
-    const securityDeposits = appData.deposits.filter(d => d.type === 'security').reduce((s, d) => s + d.amount, 0);
-    const totalInvestments = appData.investments.reduce((s, i) => s + i.amount, 0);
     const balance = totalIncome - totalExpenses;
+
+    let totalDeposits = 0;
+    let securityDeposits = 0;
+    for (const d of appData.deposits) {
+      totalDeposits += d.amount;
+      if (d.type === 'security') securityDeposits += d.amount;
+    }
+
+    let totalInvestments = 0;
+    for (const i of appData.investments) {
+      totalInvestments += i.amount;
+    }
 
     return {
       totalIncome,
@@ -2793,13 +2824,15 @@
       rent: 'Rent',
       other_income: 'Other Income',
       other_expense: 'Other Expense',
+      other: 'Other',
+      deposit_15pct: 'Company 15%',
     };
     return labels[cat] || cat;
   }
 
-  function getCategoryBadgeClass(type) {
+  function getCategoryBadgeClass(type, category) {
     if (type === 'income') return 'income';
-    if (type === 'commission_out') return 'commission';
+    if (category === 'commission_out') return 'commission';
     return 'expense';
   }
 
@@ -2862,16 +2895,20 @@
     document.getElementById('page-subtitle').textContent = t[1];
 
     // Render page-specific content
-    if (page === 'dashboard') renderDashboard();
-    else if (page === 'transactions') renderTransactions();
-    else if (page === 'agents') renderAgents();
-    else if (page === 'deposits') renderDeposits();
-    else if (page === 'income') renderIncome();
-    else if (page === 'expenses') renderExpenses();
-    else if (page === 'deals') renderDeals();
-    else if (page === 'developers') renderDevelopers();
-    else if (page === 'owners') renderOwners();
-    else if (page === 'reports') renderReports();
+    const renderers = {
+      dashboard: renderDashboard,
+      transactions: renderTransactions,
+      agents: renderAgents,
+      deposits: renderDeposits,
+      income: renderIncome,
+      expenses: renderExpenses,
+      deals: renderDeals,
+      developers: renderDevelopers,
+      owners: renderOwners,
+      reports: renderReports,
+    };
+    const renderer = renderers[page];
+    if (renderer) renderer();
   }
 
   // ============ TOAST ============
@@ -2912,9 +2949,21 @@
     renderRecentTransactions();
   }
 
+  function getChartColors() {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      textMuted: style.getPropertyValue('--text-muted').trim() || '#6b7280',
+      textSecondary: style.getPropertyValue('--text-secondary').trim() || '#9ca3af',
+      bgSecondary: style.getPropertyValue('--bg-secondary').trim() || '#1f2937',
+      textPrimary: style.getPropertyValue('--text-primary').trim() || '#f3f4f6',
+      borderColor: style.getPropertyValue('--border-color').trim() || 'rgba(255,255,255,0.1)',
+    };
+  }
+
   function renderBarChart() {
     const data = getMonthlyData();
     const ctx = document.getElementById('chart-bar').getContext('2d');
+    const colors = getChartColors();
 
     if (barChart) barChart.destroy();
 
@@ -2948,23 +2997,23 @@
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            labels: { color: '#9ca3af', font: { family: 'Inter', size: 12 }, boxWidth: 12, boxHeight: 12, borderRadius: 3, useBorderRadius: true },
+            labels: { color: colors.textSecondary, font: { family: 'Inter', size: 12 }, boxWidth: 12, boxHeight: 12, borderRadius: 3, useBorderRadius: true },
           },
           tooltip: {
-            backgroundColor: '#1f2937',
-            titleColor: '#f3f4f6',
-            bodyColor: '#9ca3af',
-            borderColor: 'rgba(255,255,255,0.1)',
+            backgroundColor: colors.bgSecondary,
+            titleColor: colors.textPrimary,
+            bodyColor: colors.textSecondary,
+            borderColor: colors.borderColor,
             borderWidth: 1,
             cornerRadius: 8,
             callbacks: { label: ctx => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` },
           },
         },
         scales: {
-          x: { ticks: { color: '#6b7280', font: { family: 'Inter', size: 11 } }, grid: { display: false } },
+          x: { ticks: { color: colors.textMuted, font: { family: 'Inter', size: 11 } }, grid: { display: false } },
           y: {
-            ticks: { color: '#6b7280', font: { family: 'Inter', size: 11 }, callback: v => `฿${(v / 1000000).toFixed(1)}M` },
-            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: { color: colors.textMuted, font: { family: 'Inter', size: 11 }, callback: v => `฿${(v / 1000000).toFixed(1)}M` },
+            grid: { color: colors.borderColor },
           },
         },
       },
@@ -2975,8 +3024,9 @@
     const breakdown = getExpenseBreakdown();
     const labels = Object.keys(breakdown);
     const values = Object.values(breakdown);
-    const colors = ['#ef4444', '#8b5cf6', '#f59e0b', '#3b82f6', '#06b6d4', '#10b981', '#ec4899'];
+    const chartColors = ['#ef4444', '#8b5cf6', '#f59e0b', '#3b82f6', '#06b6d4', '#10b981', '#ec4899'];
     const ctx = document.getElementById('chart-doughnut').getContext('2d');
+    const colors = getChartColors();
 
     if (doughnutChart) doughnutChart.destroy();
 
@@ -2986,7 +3036,7 @@
         labels,
         datasets: [{
           data: values,
-          backgroundColor: colors.slice(0, labels.length),
+          backgroundColor: chartColors.slice(0, labels.length),
           borderWidth: 0,
           hoverBorderColor: '#fff',
           hoverBorderWidth: 2,
@@ -2999,13 +3049,13 @@
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { color: '#9ca3af', font: { family: 'Inter', size: 11 }, boxWidth: 10, boxHeight: 10, borderRadius: 3, useBorderRadius: true, padding: 12 },
+            labels: { color: colors.textSecondary, font: { family: 'Inter', size: 11 }, boxWidth: 10, boxHeight: 10, borderRadius: 3, useBorderRadius: true, padding: 12 },
           },
           tooltip: {
-            backgroundColor: '#1f2937',
-            titleColor: '#f3f4f6',
-            bodyColor: '#9ca3af',
-            borderColor: 'rgba(255,255,255,0.1)',
+            backgroundColor: colors.bgSecondary,
+            titleColor: colors.textPrimary,
+            bodyColor: colors.textSecondary,
+            borderColor: colors.borderColor,
             borderWidth: 1,
             cornerRadius: 8,
             callbacks: { label: ctx => `${ctx.label}: ${formatCurrency(ctx.raw)}` },
@@ -3028,7 +3078,7 @@
       <tr>
         <td>${formatDate(t.date)}</td>
         <td>${escapeHtml(t.description)}</td>
-        <td><span class="category-badge ${getCategoryBadgeClass(t.type)}">${getCategoryLabel(t.category)}</span></td>
+        <td><span class="category-badge ${getCategoryBadgeClass(t.type, t.category)}">${getCategoryLabel(t.category)}</span></td>
         <td class="${t.type === 'income' ? 'amount-positive' : 'amount-negative'}">${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}</td>
       </tr>
     `).join('');
@@ -3059,7 +3109,7 @@
       <tr>
         <td>${formatDate(t.date)}</td>
         <td>${escapeHtml(t.description)}</td>
-        <td><span class="category-badge ${getCategoryBadgeClass(t.type)}">${getCategoryLabel(t.category)}</span></td>
+        <td><span class="category-badge ${getCategoryBadgeClass(t.type, t.category)}">${getCategoryLabel(t.category)}</span></td>
         <td>${escapeHtml(t.agent || '—')}</td>
         <td class="${t.type === 'income' ? 'amount-positive' : 'amount-negative'}">${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}</td>
         <td>
@@ -3204,9 +3254,7 @@
 
     saveData();
     closeModal('txn-modal');
-    if (currentPage === 'dashboard') renderDashboard();
-    else if (currentPage === 'transactions') renderTransactions();
-    else if (currentPage === 'reports') renderReports();
+    navigate(currentPage);
   }
 
   function editTransaction(id) {
@@ -3229,9 +3277,7 @@
     appData.transactions = appData.transactions.filter(t => t.id !== id);
     saveData();
     showToast('Transaction deleted', 'info');
-    if (currentPage === 'transactions') renderTransactions();
-    else if (currentPage === 'dashboard') renderDashboard();
-    else if (currentPage === 'reports') renderReports();
+    navigate(currentPage);
   }
 
   // ============ ADD DEPOSIT ============
@@ -3801,7 +3847,7 @@
     const txnSearch = document.getElementById('txn-search');
     const txnTypeFilter = document.getElementById('txn-type-filter');
     const txnCatFilter = document.getElementById('txn-cat-filter');
-    if (txnSearch) txnSearch.addEventListener('input', () => renderTransactions());
+    if (txnSearch) txnSearch.addEventListener('input', debounce(() => renderTransactions(), 250));
     if (txnTypeFilter) txnTypeFilter.addEventListener('change', () => renderTransactions());
     if (txnCatFilter) txnCatFilter.addEventListener('change', () => renderTransactions());
 
@@ -3833,23 +3879,37 @@
 
 
     // Deals filters
-    document.getElementById('deals-search')?.addEventListener('input', () => renderDeals());
+    document.getElementById('deals-search')?.addEventListener('input', debounce(() => renderDeals(), 250));
     document.getElementById('deals-cat-filter')?.addEventListener('change', () => renderDeals());
     document.getElementById('deals-status-filter')?.addEventListener('change', () => renderDeals());
 
     // Income filters
-    document.getElementById('inc-search')?.addEventListener('input', () => renderIncome());
+    document.getElementById('inc-search')?.addEventListener('input', debounce(() => renderIncome(), 250));
     document.getElementById('inc-date-from')?.addEventListener('change', () => renderIncome());
     document.getElementById('inc-date-to')?.addEventListener('change', () => renderIncome());
     document.getElementById('inc-cat-filter')?.addEventListener('change', () => renderIncome());
     document.getElementById('inc-agent-filter')?.addEventListener('change', () => renderIncome());
 
     // Expense filters
-    document.getElementById('exp-search')?.addEventListener('input', () => renderExpenses());
+    document.getElementById('exp-search')?.addEventListener('input', debounce(() => renderExpenses(), 250));
     document.getElementById('exp-date-from')?.addEventListener('change', () => renderExpenses());
     document.getElementById('exp-date-to')?.addEventListener('change', () => renderExpenses());
     document.getElementById('exp-cat-filter')?.addEventListener('change', () => renderExpenses());
     document.getElementById('exp-agent-filter')?.addEventListener('change', () => renderExpenses());
+
+    // Close modals on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+      }
+    });
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+      });
+    });
 
   }
 
@@ -3893,7 +3953,6 @@
 
   function updateThemeIcon(theme) {
     const btn = document.getElementById('theme-toggle');
-    if (btn) btn.textContent = theme === 'dark' ? '🌞' : 'tj';
     if (btn) btn.textContent = theme === 'dark' ? '🌞' : '🌙';
   }
 
